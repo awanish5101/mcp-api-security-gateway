@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  sentinel-gateway:
+    build: .
+    container_name: sentinel-api-mcp-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - JWT_SECRET_KEY=enterprise-api-security-sentinel-secret-key-32-chars-min
+      - RATE_LIMIT_DEFAULT_REQUESTS=100
+      - RATE_LIMIT_DEFAULT_WINDOW_SECONDS=60
+      - MCP_ENFORCE_TOOL_SCOPING=true
+      - MCP_BLOCK_PROMPT_INJECTION=true
+      - REDACT_SENSITIVE_DATA=true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
