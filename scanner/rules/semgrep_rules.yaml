@@ -1,0 +1,43 @@
+rules:
+  - id: mcp-unrestricted-tool-execution
+    patterns:
+      - pattern: |
+          def $FUNC(..., $TOOL, ...):
+              ...
+              eval(...)
+    message: "Critical Risk: Unrestricted command/code execution detected in MCP tool handler."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-94: Improper Control of Generation of Code ('Code Injection')"
+      technology:
+        - mcp
+        - python
+
+  - id: hardcoded-api-secrets-or-tokens
+    patterns:
+      - pattern-regex: "(sk_live_[a-zA-Z0-9]{20,}|AKIA[0-9A-Z]{16}|ghp_[a-zA-Z0-9]{36})"
+    message: "Hardcoded enterprise credential or cloud API secret detected."
+    languages: [python, yaml, json]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+
+  - id: api-route-missing-auth-dependency
+    patterns:
+      - pattern: |
+          @app.post("/v1/$ROUTE")
+          async def $HANDLER(...):
+              ...
+      - pattern-not: |
+          @app.post("/v1/$ROUTE")
+          async def $HANDLER(..., user: UserPrincipal = Depends(...), ...):
+              ...
+    message: "API Route exposed without authentication dependency. Risk of unauthenticated exposure (OWASP API2:2023)."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      owasp: "API2:2023 Broken Authentication"
